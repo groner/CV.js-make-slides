@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="reveal.js/lib/js/head.min.js"></script>
+  <link rel="stylesheet" href="reveal.js/css/reveal.css">
+  <link rel="stylesheet" href="reveal.js/css/theme/night.css">
+  <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+</head>
+<div class="reveal">
+  <div class="slides">
+    <section>
+      <section>
+        <h2>Grunt Limitations</h2>
+        <ul>
+          <li class="fragment">No dependencies, no incremental builds</li>
+          <li class="fragment">Missing sources are silently omitted</li>
+          <!--.fragment-->
+          <!--  | Errors are warnings?-->
+          <li class="fragment">Command line argument parser?</li>
+        </ul>
+        <aside data-markdown class="notes">
+          - Missing sources not helpful
+          
+          - Arguments marshaled with colons
+          - Hidden options
+        </aside>
+      </section>
+      <!--section: include grunt-errors-->
+      <!--section: include grunt-dependencies-->
+      <!--section: include grunt-cli-->
+    </section>
+    <section>
+      <section>
+        <h2>GNU make</h2>
+        <ul>
+          <li class="fragment">dependencies</li>
+          <li class="fragment">incremental builds</li>
+          <li class="fragment">concurrent incremental builds</li>
+          <li class="fragment">low overhead</li>
+        </ul>
+        <aside data-markdown class="notes">
+          - Nothing is modified in place
+          - When nothing needs to be done, make exits fast
+        </aside>
+      </section>
+      <section>
+        <h2>A trivial recipe</h2>
+        <pre><code data-fragment-index='2' class="hljs language-makefile fragment">BUILDDIR ?= build
+
+all: $(BUILDDIR)/index.html $(BUILDDIR)/images
+</code><code class="hljs language-makefile">JADE ?= jade $(JADEFLAGS)
+JADEFLAGS += -P
+
+# Compile html from jade
+$(BUILDDIR)/index.html: index.jade Makefile
+        @mkdir -pv $(@D)
+        $(JADE) -p $< <$< >$@
+        </code><code data-fragment-index='2' class="hljs language-makefile fragment"># Compile html from jade
+$(BUILDDIR)/index.html: index.jade Makefile
+        @mkdir -pv $(@D)
+        $(JADE) $(JADEFLAGS) -p $< <$< >$@ || rm $@
+        
+# Copy images
+.PHONY: $(BUILDDIR)/images
+$(BUILDDIR)/images: images
+        @mkdir -pv $(@D)
+        cp -a $< $@</code></pre>
+        <pre><code class="no-highlight fragment">: kai@harissa trivial; make
+jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
+cp -a images build/images
+</code></pre>
+        <aside data-markdown class="notes">
+          - $@ is the target
+          - $< is the first prerequisite (index.jade)
+        </aside>
+      </section>
+      <section>
+        <h2>Implicit (aka reusable) rules</h2>
+        <pre data-fragment-index='0' class="fragment"><code data-fragment-index='1' class="hljs language-makefile fragment">BUILDDIR ?= build
+
+all: $(BUILDDIR)/index.html $(BUILDDIR)/images
+</code><code class="hljs language-makefile">JADE ?= jade $(JADEFLAGS)
+JADEFLAGS += -P
+
+# Compile html from jade
+$(BUILDDIR)/%.html: %.jade Makefile
+        @mkdir -pv $(@D)
+        $(JADE) -p $< <$< >$@ || rm $@
+        </code><code data-fragment-index='1' class="hljs language-makefile fragment"># Copy images
+.PHONY: $(BUILDDIR)/images
+$(BUILDDIR)/images: images
+        @mkdir -pv $(@D)
+        cp -a $< $@</code></pre>
+        <pre><code class="no-highlight fragment">: kai@harissa trivial; make
+jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
+cp -a images build/images
+</code></pre>
+        <aside data-markdown class="notes">- % is the stem (index)</aside>
+      </section>
+      <section>
+        <h2>Makefile boilerplate</h2>
+        <pre><code class="hljs language-makefile fragment"># Automatically delete failed targets
+.DELETE_ON_ERROR:
+
+# Enable secondary expansion of rules in GNU make 4 (it's always on in GNU make 3).
+.SECONDEXPANSION:
+</code></pre>
+        <pre><code class="hljs language-makefile fragment"># Rules to clean up.  Double colon rules can have multiple recipes
+clean::
+        -rm -rf build
+        
+clean-harder:: clean
+        -rm -rf vendor</code></pre>
+      </section>
+      <section>
+        <h2>Dependencies</h2>
+        <pre><code class="hljs language-makefile">BUILDDIR ?= build
+
+all: $(BUILDDIR)/bundle.js
+
+# Download angular
+vendor/angular/%:
+        bower install angular\#1.2.x
+        
+# Bundle multiple scripts into one
+$(BUILDDIR)/bundle.js: vendor/angular/angular.js src/controllers.js
+        @mkdir -pv $(@D)
+        cat $^ > $@</code></pre>
+        <pre class="fragment"><code class="no-highlight">: kai@harissa incremental; make 
+bower install angular\#1.2.x
+[snip]
+angular#1.2.14 vendor/angular
+cat vendor/angular/angular.js src/controllers.js > build/bundle.js
+
+</code></pre>
+        <aside text-markdown class="notes">
+          - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
+            complicated.
+        </aside>
+      </section>
+      <section>
+        <h2>Breaking up large projects</h2>
+        <pre class="fragment"><code class="hljs language-makefile">export BUILDDIR ?= $(CURDIR)/build
+
+all: $(BUILDDIR)/bundle.js
+
+# Look for sources or recipes for sources in $(BUILDDIR) if they aren't found otherwise
+vpath % $(BUILDDIR)
+
+$(BUILDDIR)/vendor/angular.js:
+        $(MAKE) -C vendor/angular $@
+        
+# Bundle multiple scripts into one
+$(BUILDDIR)/bundle.js: vendor/angular.js src/controllers.js
+        @mkdir -pv $(@D)
+        cat $^ > $@</code></pre>
+        <pre class="fragment"><code class="hljs language-makefile"># Download angular
+vendor/angular/%:
+        bower install angular\#1.2.x
+        
+$(BUILDDIR)/vendor/angular.js: vendor/angular/angular.js
+        @mkdir -pv $(@D)
+        browserify --debug --noparse $< $< > $@</code></pre>
+        <pre class="fragment"><code class="no-highlight">: kai@harissa incremental; make 
+make -C vendor/angular .../demo/delegation/build/vendor/angular.js
+make[1]: Entering directory '.../demo/delegation/vendor/angular'
+bower install angular\#1.2.x
+[snip]
+angular#1.2.14 vendor/angular
+browserify --debug --noparse vendor/angular/angular.js vendor/angular/angular.js > .../demo/delegation/build/vendor/angular.js
+make[1]: Leaving directory '.../demo/delegation/vendor/angular'
+cat .../demo/delegation/build/vendor/angular.js src/controllers.js > .../demo/delegation/build/bundle.js
+
+</code></pre>
+        <aside text-markdown class="notes">- Your project is already complex, declaring dependencies makes that complexity manageable.</aside>
+      </section>
+      <section>
+        <h2>Dynamic Dependencies</h2>
+        <pre data-fragment-index='0' class="fragment"><code data-fragment-index='1' class="hljs language-makefile fragment">BUILDDIR ?= build
+
+all: $(BUILDDIR)/styles.css
+</code><code class="hljs language-makefile">LESSC ?= lessc $(LESSFLAGS)
+LESSFLAGS += --include-path=vendor
+
+# Download angular
+vendor/bootstrap/%:
+        bower install bootstrap\#3.1.x
+        
+.less.depends.mk: css/styles.less vendor/bootstrap/less
+        $(LESSC) -M $< $(BUILDDIR)/styles.css >$@
+        
+include .less.depends.mk
+
+$(BUILDDIR)/styles.css: css/styles.less vendor/bootstrap/less
+        $(LESSC) $< $@
+        </code><code data-fragment-index='1' class="hljs language-makefile fragment">clean:
+        -rm -rf $(BUILDDIR)
+        
+clean-harder: clean
+        -rm -rf vendor</code></pre>
+        <pre class="fragment"><code class="no-highlight">: kai@harissa dynamic-dependencies; make
+Makefile:15: .less.depends.mk: No such file or directory
+lessc --include-path=vendor -M css/styles.less build/styles.css >.less.depends.mk
+lessc --include-path=vendor css/styles.less build/styles.css
+</code></pre>
+        <aside text-markdown class="notes">
+          - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
+            complicated.
+        </aside>
+      </section>
+    </section>
+  </div>
+</div>
+<script src="reveal.js/js/reveal.js"></script>
+<script>
+  Reveal.initialize({
+      dependencies: [
+        { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        
+        { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+        
+        { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      ],
+  });
+</script>
