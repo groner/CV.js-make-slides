@@ -3,11 +3,19 @@ h2 A basic recipe
 pre: include /demo/basic/Makefile
 
 //- Manual escaping to outwit jade which helpfully closes the <index.jade> tag
-pre: code.no-highlight.fragment.
-  : kai@harissa basic; make
-  jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
-  cp -a images build/images
+pre
+  code.no-highlight.fragment.
+    : kai@harissa basic; make
+    jade --pretty --path . &lt;index.jade >index.html
+  code.no-highlight.fragment.
+    : kai@harissa basic; make
+    make: 'index.html' is up to date.
+  code.no-highlight.fragment.
+    : kai@harissa basic; vi index.jade
+  code.no-highlight.fragment.
+    : kai@harissa basic; make
+    jade --pretty --path . &lt;index.jade >index.html
 
 aside.notes(data-markdown).
-  - $@ is the target
-  - $< is the first prerequisite (index.jade)
+  - Targets and prerequisites
+  - Timestamps determine if a target is up-to-date
