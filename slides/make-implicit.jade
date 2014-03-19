@@ -2,11 +2,28 @@ h2 Implicit (aka reusable) rules
 
 pre.fragment(data-fragment-index=0): include /demo/implicit/Makefile
 
+ul
+  li.fragment(data-fragment-index=0) %.html can be made from %.jade
+  li.fragment(data-fragment-index=1) $@ expands to the target
+  li.fragment(data-fragment-index=1) $&lt; expands to the first prerequisite
+  li.fragment(data-fragment-index=1) $^ expands to all prerequisites (not used here)
+  li.fragment(data-fragment-index=2) Normal variable expansion is deferred
+
 //- Manual escaping to outwit jade which helpfully closes the <index.jade> tag
-pre: code.no-highlight.fragment.
-  : kai@harissa trivial; make
-  jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
-  cp -a images build/images
+pre
+  code.no-highlight.fragment.
+    : kai@harissa implicit; make
+    jade --pretty -p index.jade &lt;index.jade >index.html
+  code.no-highlight.fragment.
+    : kai@harissa implicit; make banana.html
+    make: *** No rule to make target 'banana.html'.  Stop.
+  code.no-highlight.fragment.
+    : kai@harissa implicit; cat &gt;banana.jade &lt;&lt;EOF
+    :; h2 Hello Banana!
+    :; EOF
+    : kai@harissa implicit; make banana.html
+    jade --pretty -p banana.jade &lt;banana.jade &gt;banana.html
 
 aside.notes(data-markdown).
   - % is the stem (index)
+  - If a prerequisite file or rule matching the target exists, the rule can be used.

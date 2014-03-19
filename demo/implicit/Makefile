@@ -1,20 +1,11 @@
-BUILDDIR ?= build
-
 JADE ?= jade $(JADEFLAGS)
-JADEFLAGS += -P
+JADEFLAGS += --pretty
 
-all: $(BUILDDIR)/index.html $(BUILDDIR)/images
+all: index.html
 
 # Compile html from jade
-$(BUILDDIR)/%.html: %.jade Makefile
-	@mkdir -pv $(@D)
+%.html: %.jade
 	$(JADE) -p $< <$< >$@
 
-# Copy images
-.PHONY: $(BUILDDIR)/images
-$(BUILDDIR)/images: images
-	@mkdir -pv $(@D)
-	cp -a $< $@
-
 clean:
-	-rm -rf build
+	-rm -f index.html

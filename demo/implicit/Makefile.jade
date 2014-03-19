@@ -1,20 +1,10 @@
-code.hljs.language-makefile.fragment(data-fragment-index=1).
-  BUILDDIR ?= build
+code.hljs.language-makefile.fragment(data-fragment-index=2).
+  JADE ?= jade $(JADEFLAGS)
+  JADEFLAGS += --pretty
 
-  all: $(BUILDDIR)/index.html $(BUILDDIR)/images
+  all: index.html
 
 code.hljs.language-makefile.
-  JADE ?= jade $(JADEFLAGS)
-  JADEFLAGS += -P
-
   # Compile html from jade
-  $(BUILDDIR)/%.html: %.jade Makefile
-          @mkdir -pv $(@D)
-          $(JADE) -p $< <$< >$@ || rm $@
-
-code.hljs.language-makefile.fragment(data-fragment-index=1).
-  # Copy images
-  .PHONY: $(BUILDDIR)/images
-  $(BUILDDIR)/images: images
-          @mkdir -pv $(@D)
-          cp -a $< $@
+  %.html: %.jade
+          $(JADE) -p $< <$< >$@
