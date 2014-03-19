@@ -1,0 +1,8 @@
+code.hljs.language-makefile.
+  # Download angular
+  vendor/angular/%:
+          bower install angular\#1.2.x
+
+  $(BUILDDIR)/vendor/angular.js: vendor/angular/angular.js
+          @mkdir -pv $(@D)
+          browserify --debug --noparse $< $< > $@

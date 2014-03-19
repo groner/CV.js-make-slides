@@ -1,0 +1,16 @@
+h2 Dependencies
+
+pre: include /demo/incremental/Makefile
+
+pre.fragment
+  code.no-highlight.
+    : kai@harissa incremental; make 
+    bower install angular\#1.2.x
+    [snip]
+    angular#1.2.14 vendor/angular
+    cat vendor/angular/angular.js src/controllers.js > build/bundle.js
+
+
+aside.notes(text-markdown).
+  - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
+    complicated.

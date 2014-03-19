@@ -1,0 +1,18 @@
+h2 Makefile boilerplate
+
+pre
+  code.hljs.language-makefile.fragment.
+    # Automatically delete failed targets
+    .DELETE_ON_ERROR:
+
+    # Enable secondary expansion of rules in GNU make 4 (it's always on in GNU make 3).
+    .SECONDEXPANSION:
+
+pre
+  code.hljs.language-makefile.fragment.
+    # Rules to clean up.  Double colon rules can have multiple recipes
+    clean::
+            -rm -rf build
+
+    clean-harder:: clean
+            -rm -rf vendor

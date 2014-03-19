@@ -1,0 +1,21 @@
+h2 Breaking up large projects
+
+pre.fragment: include /demo/delegation/Makefile
+
+pre.fragment: include /demo/delegation/vendor/angular/Makefile
+
+pre.fragment
+  code.no-highlight.
+    : kai@harissa incremental; make 
+    make -C vendor/angular .../demo/delegation/build/vendor/angular.js
+    make[1]: Entering directory '.../demo/delegation/vendor/angular'
+    bower install angular\#1.2.x
+    [snip]
+    angular#1.2.14 vendor/angular
+    browserify --debug --noparse vendor/angular/angular.js vendor/angular/angular.js > .../demo/delegation/build/vendor/angular.js
+    make[1]: Leaving directory '.../demo/delegation/vendor/angular'
+    cat .../demo/delegation/build/vendor/angular.js src/controllers.js > .../demo/delegation/build/bundle.js
+
+
+aside.notes(text-markdown).
+  - Your project is already complex, declaring dependencies makes that complexity manageable.
