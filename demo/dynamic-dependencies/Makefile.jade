@@ -1,0 +1,27 @@
+code.hljs.language-makefile.fragment(data-fragment-index=1).
+  BUILDDIR ?= build
+
+  all: $(BUILDDIR)/styles.css
+
+code.hljs.language-makefile.
+  LESSC ?= lessc $(LESSFLAGS)
+  LESSFLAGS += --include-path=vendor
+
+  # Download angular
+  vendor/bootstrap/%:
+          bower install bootstrap\#3.1.x
+
+  .less.depends.mk: css/styles.less vendor/bootstrap/less
+          $(LESSC) -M $< $(BUILDDIR)/styles.css >$@
+
+  include .less.depends.mk
+
+  $(BUILDDIR)/styles.css: css/styles.less vendor/bootstrap/less
+          $(LESSC) $< $@
+
+code.hljs.language-makefile.fragment(data-fragment-index=1).
+  clean:
+          -rm -rf $(BUILDDIR)
+
+  clean-harder: clean
+          -rm -rf vendor

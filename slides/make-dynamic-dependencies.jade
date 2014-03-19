@@ -1,0 +1,15 @@
+h2 Dynamic Dependencies
+
+pre.fragment(data-fragment-index=0)
+  include /demo/dynamic-dependencies/Makefile
+
+pre.fragment
+  code.no-highlight.
+    : kai@harissa dynamic-dependencies; make
+    Makefile:15: .less.depends.mk: No such file or directory
+    lessc --include-path=vendor -M css/styles.less build/styles.css >.less.depends.mk
+    lessc --include-path=vendor css/styles.less build/styles.css
+
+aside.notes(text-markdown).
+  - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
+    complicated.
