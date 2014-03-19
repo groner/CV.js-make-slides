@@ -10,7 +10,10 @@ JADE_OBJ += basedir: "$(CURDIR)",
 
 all: $(BUILDDIR)/index.html $(BUILDDIR)/reveal.js
 
-$(BUILDDIR)/index.html_DEPENDS = $(wildcard slides/* css/* demo/*/Makefile.jade)
+$(BUILDDIR)/index.html_DEPENDS = $(wildcard slides/*)
+$(BUILDDIR)/index.html_DEPENDS = $(wildcard css/*)
+$(BUILDDIR)/index.html_DEPENDS = $(wildcard demo/*/Makefile.jade)
+$(BUILDDIR)/index.html_DEPENDS = $(wildcard demo/*/.tree.txt)
 
 $(BUILDDIR)/%.html: DEPENDS = $($@_DEPENDS)
 $(BUILDDIR)/%.html: %.jade Makefile $$(DEPENDS)

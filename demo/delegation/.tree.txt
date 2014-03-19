@@ -1,0 +1,7 @@
+delegation
+├── Makefile
+├── src/
+│   └── controllers.js
+└── vendor/
+    └── angular/
+        └── Makefile
