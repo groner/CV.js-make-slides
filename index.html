@@ -9,6 +9,12 @@
 <div class="reveal">
   <div class="slides">
     <section>
+      <h2><code>make</code></h2>
+      <p>CV.js 2014-03-18</p>
+      <p><a href="https://groner.github.io/CV.js-make-slides/">groner.github.io/CV.js-make-slides/</a></p>
+      <p><a href="https://github.com/groner/CV.js-make-slides">groner/CV.js-make-slides</a></p>
+    </section>
+    <section>
       <section>
         <h2>Grunt Limitations</h2>
         <ul>
@@ -44,58 +50,56 @@
         </aside>
       </section>
       <section>
-        <h2>A trivial recipe</h2>
-        <pre><code data-fragment-index='2' class="hljs language-makefile fragment">BUILDDIR ?= build
-
-all: $(BUILDDIR)/index.html $(BUILDDIR)/images
-</code><code class="hljs language-makefile">JADE ?= jade $(JADEFLAGS)
-JADEFLAGS += -P
-
-# Compile html from jade
-$(BUILDDIR)/index.html: index.jade Makefile
-        @mkdir -pv $(@D)
-        $(JADE) -p $< <$< >$@
-        </code><code data-fragment-index='2' class="hljs language-makefile fragment"># Compile html from jade
-$(BUILDDIR)/index.html: index.jade Makefile
-        @mkdir -pv $(@D)
-        $(JADE) $(JADEFLAGS) -p $< <$< >$@ || rm $@
-        
-# Copy images
-.PHONY: $(BUILDDIR)/images
-$(BUILDDIR)/images: images
-        @mkdir -pv $(@D)
-        cp -a $< $@</code></pre>
-        <pre><code class="no-highlight fragment">: kai@harissa trivial; make
-jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
-cp -a images build/images
+        <h2>A basic recipe</h2>
+        <pre style="position: absolute; left: 100%; width: auto;">basic
+├── Makefile
+└── index.jade
+</pre>
+        <pre><code class="hljs language-makefile"># Compile html from jade
+index.html: index.jade
+        jade --pretty index.jade</code></pre>
+        <pre><code class="no-highlight fragment">: kai@harissa basic; make
+jade --pretty --path . &lt;index.jade >index.html</code><code class="no-highlight fragment">: kai@harissa basic; make
+make: 'index.html' is up to date.</code><code class="no-highlight fragment">: kai@harissa basic; vi index.jade</code><code class="no-highlight fragment">: kai@harissa basic; make
+jade --pretty --path . &lt;index.jade >index.html
 </code></pre>
         <aside data-markdown class="notes">
-          - $@ is the target
-          - $< is the first prerequisite (index.jade)
+          - Targets and prerequisites
+          - Timestamps determine if a target is up-to-date
         </aside>
       </section>
       <section>
         <h2>Implicit (aka reusable) rules</h2>
-        <pre data-fragment-index='0' class="fragment"><code data-fragment-index='1' class="hljs language-makefile fragment">BUILDDIR ?= build
+        <pre style="position: absolute; left: 100%; width: auto;">implicit
+├── Makefile
+└── index.jade
+</pre>
+        <pre data-fragment-index='0' class="fragment"><code data-fragment-index='2' class="hljs language-makefile fragment">JADE ?= jade $(JADEFLAGS)
+JADEFLAGS += --pretty
 
-all: $(BUILDDIR)/index.html $(BUILDDIR)/images
-</code><code class="hljs language-makefile">JADE ?= jade $(JADEFLAGS)
-JADEFLAGS += -P
-
-# Compile html from jade
-$(BUILDDIR)/%.html: %.jade Makefile
-        @mkdir -pv $(@D)
-        $(JADE) -p $< <$< >$@ || rm $@
-        </code><code data-fragment-index='1' class="hljs language-makefile fragment"># Copy images
-.PHONY: $(BUILDDIR)/images
-$(BUILDDIR)/images: images
-        @mkdir -pv $(@D)
-        cp -a $< $@</code></pre>
-        <pre><code class="no-highlight fragment">: kai@harissa trivial; make
-jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
-cp -a images build/images
+all: index.html
+</code><code class="hljs language-makefile"># Compile html from jade
+%.html: %.jade
+        $(JADE) -p $< <$< >$@</code></pre>
+        <ul>
+          <li data-fragment-index='0' class="fragment">%.html can be made from %.jade</li>
+          <li data-fragment-index='1' class="fragment">$@ expands to the target</li>
+          <li data-fragment-index='1' class="fragment">$&lt; expands to the first prerequisite</li>
+          <li data-fragment-index='1' class="fragment">$^ expands to all prerequisites (not used here)</li>
+          <li data-fragment-index='2' class="fragment">Normal variable expansion is deferred</li>
+        </ul>
+        <pre><code class="no-highlight fragment">: kai@harissa implicit; make
+jade --pretty -p index.jade &lt;index.jade >index.html</code><code class="no-highlight fragment">: kai@harissa implicit; make banana.html
+make: *** No rule to make target 'banana.html'.  Stop.</code><code class="no-highlight fragment">: kai@harissa implicit; cat &gt;banana.jade &lt;&lt;EOF
+:; h2 Hello Banana!
+:; EOF
+: kai@harissa implicit; make banana.html
+jade --pretty -p banana.jade &lt;banana.jade &gt;banana.html
 </code></pre>
-        <aside data-markdown class="notes">- % is the stem (index)</aside>
+        <aside data-markdown class="notes">
+          - % is the stem (index)
+          - If a prerequisite file or rule matching the target exists, the rule can be used.
+        </aside>
       </section>
       <section>
         <h2>Makefile boilerplate</h2>
@@ -114,6 +118,11 @@ clean-harder:: clean
       </section>
       <section>
         <h2>Dependencies</h2>
+        <pre style="position: absolute; left: 100%; width: auto;">incremental
+├── Makefile
+└── src/
+    └── controllers.js
+</pre>
         <pre><code class="hljs language-makefile">BUILDDIR ?= build
 
 all: $(BUILDDIR)/bundle.js
@@ -140,6 +149,14 @@ cat vendor/angular/angular.js src/controllers.js > build/bundle.js
       </section>
       <section>
         <h2>Breaking up large projects</h2>
+        <pre style="position: absolute; left: 100%; width: auto;">delegation
+├── Makefile
+├── src/
+│   └── controllers.js
+└── vendor/
+    └── angular/
+        └── Makefile
+</pre>
         <pre class="fragment"><code class="hljs language-makefile">export BUILDDIR ?= $(CURDIR)/build
 
 all: $(BUILDDIR)/bundle.js
@@ -176,6 +193,12 @@ cat .../demo/delegation/build/vendor/angular.js src/controllers.js > .../demo/de
       </section>
       <section>
         <h2>Dynamic Dependencies</h2>
+        <pre style="position: absolute; left: 100%; width: auto;">dynamic-dependencies
+├── Makefile
+└── css/
+    ├── squares.less
+    └── styles.less
+</pre>
         <pre data-fragment-index='0' class="fragment"><code data-fragment-index='1' class="hljs language-makefile fragment">BUILDDIR ?= build
 
 all: $(BUILDDIR)/styles.css
@@ -203,9 +226,11 @@ Makefile:15: .less.depends.mk: No such file or directory
 lessc --include-path=vendor -M css/styles.less build/styles.css >.less.depends.mk
 lessc --include-path=vendor css/styles.less build/styles.css
 </code></pre>
-        <aside text-markdown class="notes">
+        <aside data-markdown class="notes">
           - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
             complicated.
+            
+          - Talk about timestamp files (re: vendor/.../%)
         </aside>
       </section>
     </section>
