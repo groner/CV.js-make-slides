@@ -1,10 +1,10 @@
-h2 A trivial recipe
+h2 A basic recipe
 
-pre: include /demo/trivial/Makefile
+pre: include /demo/basic/Makefile
 
 //- Manual escaping to outwit jade which helpfully closes the <index.jade> tag
 pre: code.no-highlight.fragment.
-  : kai@harissa trivial; make
+  : kai@harissa basic; make
   jade -P -p index.jade &lt;index.jade >build/index.html || rm build/index.html
   cp -a images build/images
 
