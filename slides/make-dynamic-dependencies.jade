@@ -10,6 +10,8 @@ pre.fragment
     lessc --include-path=vendor -M css/styles.less build/styles.css >.less.depends.mk
     lessc --include-path=vendor css/styles.less build/styles.css
 
-aside.notes(text-markdown).
+aside.notes(data-markdown).
   - Declaring dependencies is a way of managing complexity, it doesn't make your project any more
     complicated.
+
+  - Talk about timestamp files (re: vendor/.../%)
